@@ -69,12 +69,16 @@ void RegisterLinkSpeedModifier() {
         }
 
         if (CVAR_SPEED_MODIFIER_ROLL_MOMENTUM_JUMP) {
-            // Ledge jumps switch to the faster launch path when speedXZ is above this vanilla threshold.
-            // Raise slower jumps just past that threshold so they behave like Link entered the jump with
-            // roll/run momentum, without applying the speed modifier multiplier.
-            const f32 rollJumpSpeed = (IREG(66) / 100.0f) + 0.01f;
-            if (*speedXZ < rollJumpSpeed) {
-                *speedXZ = rollJumpSpeed;
+            // This hook runs immediately before the jump launch is applied. The first implementation only raised
+            // speedXZ just above the vanilla fast-jump threshold, which chooses the fast jump path but does not
+            // add the extra horizontal distance a roll carries into a ledge jump. Use the same 1.5x horizontal
+            // momentum scale used by rolling so ordinary ledge jumps behave like Link rolled into them, without
+            // applying the speed modifier multiplier itself.
+            const f32 fastJumpThreshold = IREG(66) / 100.0f;
+            const f32 rollJumpMomentum = MAX(fastJumpThreshold * 1.5f, fastJumpThreshold + 0.01f);
+
+            if (*speedXZ < rollJumpMomentum) {
+                *speedXZ = rollJumpMomentum;
             }
         }
     });
