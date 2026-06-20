@@ -7694,6 +7694,7 @@ void func_8083827C(Player* this, PlayState* play) {
         // Checking if the ledge is tall enough for Player to hang from
         if ((sPrevFloorProperty == FLOOR_PROPERTY_9) || (sPlayerYDistToFloor <= this->ageProperties->unk_34) ||
             !func_80837DEC(this, play)) {
+            GameInteractor_Should(VB_SPEED_MODIFIER_SHORT_DROP, true, &this->speedXZ, &this->actor.speed);
             Player_Anim_PlayLoop(play, this, &gPlayerAnim_link_normal_landing_wait);
         }
     } else {

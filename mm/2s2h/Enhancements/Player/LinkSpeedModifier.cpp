@@ -83,20 +83,15 @@ void RegisterLinkSpeedModifier() {
         }
     });
 
-    COND_HOOK(OnActorUpdate, CVAR_SPEED_MODIFIER_MODE && CVAR_SPEED_MODIFIER_DOESNT_CHANGE_JUMP, [](Actor* actor) {
-        if (actor == NULL || actor->id != ACTOR_PLAYER || !IsSpeedModifierActive() || CVAR_SPEED_MODIFIER_VALUE == 0.0f) {
-            return;
-        }
+    COND_VB_SHOULD(VB_SPEED_MODIFIER_SHORT_DROP, CVAR_SPEED_MODIFIER_MODE && CVAR_SPEED_MODIFIER_DOESNT_CHANGE_JUMP, {
+        f32* speedXZ = va_arg(args, f32*);
+        f32* actorSpeed = va_arg(args, f32*);
 
-        Player* player = (Player*)actor;
-
-        // Tiny ledges and step-down drops can leave Link airborne without entering the normal ledge-jump hook.
-        // In that state actor->velocity.y is not positive, so strip the active speed modifier from carried
-        // horizontal speed while falling. This avoids speed-modifier launches from short drops while keeping real
-        // upward ledge jumps handled by VB_SPEED_MODIFIER_JUMP.
-        if (!CHECK_FLAG_ALL(actor->bgCheckFlags, BGCHECKFLAG_GROUND) && actor->velocity.y <= 0.0f) {
-            player->speedXZ /= CVAR_SPEED_MODIFIER_VALUE;
-            actor->speed /= CVAR_SPEED_MODIFIER_VALUE;
+        if (IsSpeedModifierActive() && CVAR_SPEED_MODIFIER_VALUE != 0.0f) {
+            // Short drops do not go through the normal ledge-jump launch path, so remove the active speed
+            // modifier directly when the game enters the short-drop / landing-wait path.
+            *speedXZ /= CVAR_SPEED_MODIFIER_VALUE;
+            *actorSpeed /= CVAR_SPEED_MODIFIER_VALUE;
         }
     });
 
