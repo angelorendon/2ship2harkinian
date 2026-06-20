@@ -83,6 +83,22 @@ void RegisterLinkSpeedModifier() {
         }
     });
 
+    COND_HOOK(OnActorUpdate, CVAR_SPEED_MODIFIER_MODE && CVAR_SPEED_MODIFIER_DOESNT_CHANGE_JUMP, [](Actor* actor) {
+        if (actor == NULL || actor->id != ACTOR_PLAYER || !IsSpeedModifierActive() || CVAR_SPEED_MODIFIER_VALUE == 0.0f) {
+            return;
+        }
+
+        Player* player = (Player*)actor;
+
+        // Very short ledges can put Link into a falling/drop state instead of the normal ledge-jump path, so the
+        // VB_SPEED_MODIFIER_JUMP hook is never reached. When Link has just left the ground without upward jump
+        // velocity, strip the speed modifier from his carried horizontal momentum so tiny drops do not launch him.
+        if (CHECK_FLAG_ALL(actor->bgCheckFlags, BGCHECKFLAG_GROUND_LEAVE) && actor->velocity.y <= 0.0f) {
+            player->speedXZ /= CVAR_SPEED_MODIFIER_VALUE;
+            actor->speed /= CVAR_SPEED_MODIFIER_VALUE;
+        }
+    });
+
     COND_HOOK(OnPassPlayerInputs, CVAR_SPEED_MODIFIER_MODE >= 2, [](Input* input) {
         const s32 modMask = CVAR_SPEED_MODIFIER_BTN;
 
