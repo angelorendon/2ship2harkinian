@@ -90,10 +90,11 @@ void RegisterLinkSpeedModifier() {
 
         Player* player = (Player*)actor;
 
-        // Very short ledges can put Link into a falling/drop state instead of the normal ledge-jump path, so the
-        // VB_SPEED_MODIFIER_JUMP hook is never reached. When Link has just left the ground without upward jump
-        // velocity, strip the speed modifier from his carried horizontal momentum so tiny drops do not launch him.
-        if (CHECK_FLAG_ALL(actor->bgCheckFlags, BGCHECKFLAG_GROUND_LEAVE) && actor->velocity.y <= 0.0f) {
+        // Tiny ledges and step-down drops can leave Link airborne without entering the normal ledge-jump hook.
+        // In that state actor->velocity.y is not positive, so strip the active speed modifier from carried
+        // horizontal speed while falling. This avoids speed-modifier launches from short drops while keeping real
+        // upward ledge jumps handled by VB_SPEED_MODIFIER_JUMP.
+        if (!CHECK_FLAG_ALL(actor->bgCheckFlags, BGCHECKFLAG_GROUND) && actor->velocity.y <= 0.0f) {
             player->speedXZ /= CVAR_SPEED_MODIFIER_VALUE;
             actor->speed /= CVAR_SPEED_MODIFIER_VALUE;
         }
