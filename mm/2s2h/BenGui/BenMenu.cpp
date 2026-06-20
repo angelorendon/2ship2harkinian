@@ -1011,6 +1011,14 @@ void BenMenu::AddEnhancements() {
         .PreFunc([](WidgetInfo& info) { info.isHidden = !CVarGetInteger("gCheats.SpeedModifier.Mode", 0); })
         .Options(CheckboxOptions().Tooltip(
             "Prevents the speed modifier from carrying into jump distance by restoring vanilla horizontal jump velocity."));
+    AddWidget(path, "Always use roll jump momentum", WIDGET_CVAR_CHECKBOX)
+        .CVar("gCheats.SpeedModifier.RollMomentumJump")
+        .PreFunc([](WidgetInfo& info) {
+            info.isHidden = !CVarGetInteger("gCheats.SpeedModifier.Mode", 0) ||
+                            !CVarGetInteger("gCheats.SpeedModifier.DoesntChangeJump", 0);
+        })
+        .Options(CheckboxOptions().Tooltip(
+            "Gives every ledge jump the extra horizontal momentum normally gained from a fast roll/run jump."));
     AddWidget(path, "Multiplier:", WIDGET_CVAR_SLIDER_FLOAT)
         .CVar("gCheats.SpeedModifier.Value")
         .PreFunc([](WidgetInfo& info) { info.isHidden = !CVarGetInteger("gCheats.SpeedModifier.Mode", 0); })
