@@ -13,11 +13,13 @@ extern Input* sPlayerControlInput;
 #define CVAR_SPEED_MODIFIER_VALUE_NAME "gCheats.SpeedModifier.Value"
 #define CVAR_SPEED_MODIFIER_BTN_NAME "gCheats.SpeedModifier.Btn"
 #define CVAR_SPEED_MODIFIER_DOESNT_CHANGE_JUMP_NAME "gCheats.SpeedModifier.DoesntChangeJump"
+#define CVAR_SPEED_MODIFIER_ROLL_MOMENTUM_JUMP_NAME "gCheats.SpeedModifier.RollMomentumJump"
 #define CVAR_SPEED_MODIFIER_MODE CVarGetInteger(CVAR_SPEED_MODIFIER_MODE_NAME, 0)
 #define CVAR_SPEED_MODIFIER_TOGGLE CVarGetInteger(CVAR_SPEED_MODIFIER_TOGGLE_NAME, 0)
 #define CVAR_SPEED_MODIFIER_VALUE CVarGetFloat(CVAR_SPEED_MODIFIER_VALUE_NAME, 1.0f)
 #define CVAR_SPEED_MODIFIER_BTN CVarGetInteger(CVAR_SPEED_MODIFIER_BTN_NAME, BTN_CUSTOM_MODIFIER1)
 #define CVAR_SPEED_MODIFIER_DOESNT_CHANGE_JUMP CVarGetInteger(CVAR_SPEED_MODIFIER_DOESNT_CHANGE_JUMP_NAME, 0)
+#define CVAR_SPEED_MODIFIER_ROLL_MOMENTUM_JUMP CVarGetInteger(CVAR_SPEED_MODIFIER_ROLL_MOMENTUM_JUMP_NAME, 0)
 
 bool btnHeldOrToggled = false;
 
@@ -62,7 +64,18 @@ void RegisterLinkSpeedModifier() {
         f32* speedXZ = va_arg(args, f32*);
 
         if (IsSpeedModifierActive() && CVAR_SPEED_MODIFIER_VALUE != 0.0f) {
+            // Preserve vanilla jump distance by removing the speed modifier's multiplier before jump physics runs.
             *speedXZ /= CVAR_SPEED_MODIFIER_VALUE;
+        }
+
+        if (CVAR_SPEED_MODIFIER_ROLL_MOMENTUM_JUMP) {
+            // Ledge jumps switch to the faster launch path when speedXZ is above this vanilla threshold.
+            // Raise slower jumps just past that threshold so they behave like Link entered the jump with
+            // roll/run momentum, without applying the speed modifier multiplier.
+            const f32 rollJumpSpeed = (IREG(66) / 100.0f) + 0.01f;
+            if (*speedXZ < rollJumpSpeed) {
+                *speedXZ = rollJumpSpeed;
+            }
         }
     });
 
