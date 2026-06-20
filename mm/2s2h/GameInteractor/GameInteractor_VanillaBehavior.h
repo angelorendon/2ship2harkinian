@@ -2205,6 +2205,15 @@ typedef enum {
     VB_SPEED_MODIFIER_JUMP,
 
     // #### `result`
+    // ```
+    // true
+    // ```
+    // #### `args`
+    // - '*f32' (speedXZ)
+    // - '*f32' (actorSpeed)
+    VB_SPEED_MODIFIER_SHORT_DROP,
+
+    // #### `result`
     // ```c
     // this->actor.xzDistToPlayer < 350.0f
     // ```
