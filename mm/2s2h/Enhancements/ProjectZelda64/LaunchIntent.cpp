@@ -21,7 +21,7 @@ extern SaveContext gSaveContext;
 namespace {
 
 constexpr const char* kLaunchIntentFileName = "projectzelda64_launch_intent.json";
-constexpr int kSouthClockTownSpawn = 2;
+constexpr int kSouthClockTownSpawn = 0;
 
 bool gProjectZelda64IntentConsumed = false;
 
