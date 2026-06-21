@@ -13,6 +13,17 @@ void ApplyProjectZelda64TestingDefaults() {
     CVarSetInteger("gSettings.MSAAValue", 8);
     CVarSetInteger("gInterpolationFPS", 360);
 
+    // Audio defaults: 2S2H is naturally louder than OoT in the ProjectZelda64 flow.
+    // Set likely Libultraship/2S2H master/main volume CVars defensively; unused keys are harmless.
+    CVarSetInteger("gSettings.Audio.MasterVolume", 80);
+    CVarSetInteger("gSettings.Audio.MainVolume", 80);
+    CVarSetInteger("gSettings.Audio.Volume", 80);
+    CVarSetInteger("gAudio.MasterVolume", 80);
+    CVarSetInteger("gAudio.MainVolume", 80);
+    CVarSetInteger("gAudio.Volume", 80);
+    CVarSetInteger("gMainVolume", 80);
+    CVarSetInteger("gMasterVolume", 80);
+
     // Controller defaults: set likely A/B swap CVars without depending on branch-specific input headers.
     // The earlier custom input hook used z64input.h / OnPassPlayerInputs, which is not stable in this 2S2H branch.
     CVarSetInteger("gProjectZelda64.SwapABControls", 1);
