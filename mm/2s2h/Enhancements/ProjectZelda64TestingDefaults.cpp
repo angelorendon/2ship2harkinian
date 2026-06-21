@@ -23,14 +23,14 @@ void ApplyProjectZelda64TestingDefaults() {
     // Player movement defaults.
     CVarSetInteger("gEnhancements.Player.ClimbSpeed", 5);
 
-    // Speed modifier defaults. Mode 2 is hold-buttons mode; set multiple possible Modifier 1 keys for fork compatibility.
+    // Speed modifier defaults. Mode 2 is hold-buttons mode; 2 maps to Modifier 2 in this 2S2H input enum.
     CVarSetInteger("gCheats.SpeedModifier.Enabled", 1);
     CVarSetInteger("gCheats.SpeedModifier.Mode", 2);
     CVarSetFloat("gCheats.SpeedModifier.Value", 6.0f);
-    CVarSetInteger("gCheats.SpeedModifier.Button", 1);
-    CVarSetInteger("gCheats.SpeedModifier.Btn", 1);
-    CVarSetInteger("gCheats.SpeedModifier.Modifier", 1);
-    CVarSetInteger("gCheats.SpeedModifier.ModifierButton", 1);
+    CVarSetInteger("gCheats.SpeedModifier.Button", 2);
+    CVarSetInteger("gCheats.SpeedModifier.Btn", 2);
+    CVarSetInteger("gCheats.SpeedModifier.Modifier", 2);
+    CVarSetInteger("gCheats.SpeedModifier.ModifierButton", 2);
 
     // Keep these compatibility keys set for forks/patches that expose jump-safe speed modifier options.
     CVarSetInteger("gCheats.SpeedModifier.DontAffectJumpVelocity", 1);
