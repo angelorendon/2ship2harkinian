@@ -1,14 +1,13 @@
-#include <libultraship/bridge/consolevariablebridge.h>
-#include "2s2h/GameInteractor/GameInteractor.h"
-#include "2s2h/ShipInit.hpp"
+// ProjectZelda64 testing defaults for 2S2H.
+// Keep this file limited to branch-stable CVars. Do not use input/animation hooks here:
+// this branch's hook signatures differ and MSVC treats those warnings as errors.
 
-extern "C" {
-#include "variables.h"
-}
+#include <libultraship/bridge/consolevariablebridge.h>
+
+#include "2s2h/ShipInit.hpp"
 
 namespace {
 constexpr const char* kEnableTestingDefaultsCVar = "gProjectZelda64.EnableTestingDefaults";
-constexpr const char* kSwapAAndBCVar = "gProjectZelda64.SwapAAndB";
 
 void ApplyProjectZelda64TestingDefaults() {
     // Graphics defaults for repeated ProjectZelda64 smoke tests.
@@ -19,42 +18,30 @@ void ApplyProjectZelda64TestingDefaults() {
     CVarSetInteger("gEnhancements.Cutscenes.SkipEntranceCutscenes", 1);
     CVarSetInteger("gEnhancements.Cutscenes.SkipFirstCycle", 1);
     CVarSetInteger("gEnhancements.Cutscenes.SkipIntroSequence", 1);
+    CVarSetInteger("gEnhancements.Cutscenes.SkipIntro", 1);
+    CVarSetInteger("gEnhancements.TimeSavers.SkipCutscene.Intro", 1);
+    CVarSetInteger("gEnhancements.TimeSavers.SkipCutscene.Entrances", 1);
+    CVarSetInteger("gEnhancements.TimeSavers.SkipOwlInteractions", 1);
+    CVarSetInteger("gEnhancements.TextSpeed", 5);
+    CVarSetInteger("gEnhancements.SlowTextSpeed", 5);
 
-    // Keep the input swap discoverable/disableable without depending on controller profile serialization.
-    CVarSetInteger(kSwapAAndBCVar, 1);
-}
+    // Speed modifier defaults.
+    CVarSetInteger("gCheats.SpeedModifier.Enabled", 1);
+    CVarSetInteger("gCheats.SpeedModifier.Mode", 3);
+    CVarSetFloat("gCheats.SpeedModifier.Value", 5.0f);
 
-void SwapAAndBButtons(Input* input) {
-    if (input == nullptr) {
-        return;
-    }
-
-    auto swapButtons = [](decltype(input->cur.button)& buttons) {
-        const bool hasA = (buttons & BTN_A) != 0;
-        const bool hasB = (buttons & BTN_B) != 0;
-
-        buttons &= static_cast<decltype(buttons)>(~(BTN_A | BTN_B));
-        if (hasA) {
-            buttons |= BTN_B;
-        }
-        if (hasB) {
-            buttons |= BTN_A;
-        }
-    };
-
-    swapButtons(input->cur.button);
-    swapButtons(input->press.button);
-    swapButtons(input->rel.button);
+    // Try both historical jump-safe names used across Shipwright/2S2H forks.
+    CVarSetInteger("gCheats.SpeedModifier.DontAffectJumpVelocity", 1);
+    CVarSetInteger("gCheats.SpeedModifier.DoNotAffectJumpVelocity", 1);
+    CVarSetInteger("gCheats.SpeedModifier.DontAffectJumpDistance", 1);
+    CVarSetInteger("gCheats.SpeedModifier.DoNotAffectJumpDistance", 1);
 }
 
 void RegisterProjectZelda64TestingDefaults() {
     if (CVarGetInteger(kEnableTestingDefaultsCVar, 1)) {
         ApplyProjectZelda64TestingDefaults();
     }
-
-    COND_HOOK(OnPassPlayerInputs, CVarGetInteger(kSwapAAndBCVar, 1), [](Input* input) { SwapAAndBButtons(input); });
 }
 } // namespace
 
-static RegisterShipInitFunc initFunc(RegisterProjectZelda64TestingDefaults,
-                                     { kEnableTestingDefaultsCVar, kSwapAAndBCVar });
+static RegisterShipInitFunc initFunc(RegisterProjectZelda64TestingDefaults, { kEnableTestingDefaultsCVar });
