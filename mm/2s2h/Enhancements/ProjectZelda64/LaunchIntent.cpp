@@ -21,6 +21,7 @@ extern SaveContext gSaveContext;
 namespace {
 
 constexpr const char* kLaunchIntentFileName = "projectzelda64_launch_intent.json";
+constexpr int kSouthClockTownSpawn = 2;
 
 bool gProjectZelda64IntentConsumed = false;
 
@@ -88,8 +89,6 @@ bool TryConsumeClockTownLaunchIntent() {
 
 void PrepareClockTownSaveState() {
     Sram_InitNewSave();
-
-    constexpr int kSouthClockTownSpawn = 2;
 
     gSaveContext.gameMode = GAMEMODE_NORMAL;
     gSaveContext.sceneLayer = 0;
