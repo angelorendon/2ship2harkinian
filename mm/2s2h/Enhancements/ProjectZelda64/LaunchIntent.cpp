@@ -16,6 +16,8 @@ extern "C" {
 #include "variables.h"
 #include "macros.h"
 #include "functions.h"
+#include "z64item.h"
+#include "z64save.h"
 #include "overlays/gamestates/ovl_select/z_select.h"
 #include "overlays/gamestates/ovl_title/z_title.h"
 
@@ -27,6 +29,7 @@ namespace {
 
 constexpr const char* kLaunchIntentFileName = "projectzelda64_launch_intent.json";
 constexpr const char* kSharedRupeesFileName = "projectzelda64_shared_rupees.json";
+constexpr const char* kSharedStateFileName = "projectzelda64_shared_state.json";
 constexpr int kSouthClockTownSpawn = 0;
 
 bool gProjectZelda64IntentConsumed = false;
@@ -52,7 +55,7 @@ void AddPathIfUnique(std::vector<std::filesystem::path>& paths, std::set<std::st
     }
 }
 
-std::vector<std::filesystem::path> SharedRupeePaths() {
+std::vector<std::filesystem::path> SharedBridgePaths(const char* fileName) {
     std::vector<std::filesystem::path> paths;
     std::set<std::string> seen;
 
@@ -63,13 +66,13 @@ std::vector<std::filesystem::path> SharedRupeePaths() {
     }
 
     for (int depth = 0; depth < 8 && !base.empty(); depth++) {
-        AddPathIfUnique(paths, seen, base / kSharedRupeesFileName);
-        AddPathIfUnique(paths, seen, base / "x64" / "Release" / kSharedRupeesFileName);
-        AddPathIfUnique(paths, seen, base / "build" / "x64" / "Release" / kSharedRupeesFileName);
-        AddPathIfUnique(paths, seen, base / "extern" / "Shipwright" / "x64" / "Release" / kSharedRupeesFileName);
-        AddPathIfUnique(paths, seen, base / "extern" / "Shipwright" / "build" / "x64" / "Release" / kSharedRupeesFileName);
-        AddPathIfUnique(paths, seen, base / "extern" / "2ship2harkinian" / "x64" / "Release" / kSharedRupeesFileName);
-        AddPathIfUnique(paths, seen, base / "extern" / "2ship2harkinian" / "build" / "x64" / "Release" / kSharedRupeesFileName);
+        AddPathIfUnique(paths, seen, base / fileName);
+        AddPathIfUnique(paths, seen, base / "x64" / "Release" / fileName);
+        AddPathIfUnique(paths, seen, base / "build" / "x64" / "Release" / fileName);
+        AddPathIfUnique(paths, seen, base / "extern" / "Shipwright" / "x64" / "Release" / fileName);
+        AddPathIfUnique(paths, seen, base / "extern" / "Shipwright" / "build" / "x64" / "Release" / fileName);
+        AddPathIfUnique(paths, seen, base / "extern" / "2ship2harkinian" / "x64" / "Release" / fileName);
+        AddPathIfUnique(paths, seen, base / "extern" / "2ship2harkinian" / "build" / "x64" / "Release" / fileName);
 
         const auto parent = base.parent_path();
         if (parent == base) {
@@ -100,8 +103,42 @@ std::optional<int> ReadSharedRupeesFromPath(const std::filesystem::path& path) {
     return ExtractSharedRupees(ReadWholeFile(path));
 }
 
+bool SharedStateContains(const char* value) {
+    for (const auto& path : SharedBridgePaths(kSharedStateFileName)) {
+        std::error_code existsError;
+        if (!std::filesystem::exists(path, existsError) || existsError) {
+            continue;
+        }
+
+        if (Contains(ReadWholeFile(path), value)) {
+            std::cout << "[ProjectZelda64] read shared item state from " << path.string() << '\n';
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void GrantFierceDeityMaskFromSharedStateIfPresent() {
+    if (!SharedStateContains("\"mm.fierce_deity_mask\": true")) {
+        return;
+    }
+
+    INV_CONTENT(ITEM_MASK_FIERCE_DEITY) = ITEM_MASK_FIERCE_DEITY;
+    gSaveContext.save.saveInfo.inventory.items[SLOT_MASK_FIERCE_DEITY] = ITEM_MASK_FIERCE_DEITY;
+
+    // This flag means the Moon Child has temporarily taken the mask. Clear it so the pause menu does not treat
+    // the mask as unavailable immediately after we inject it from the shared ProjectZelda64 state.
+    CLEAR_WEEKEVENTREG(WEEKEVENTREG_84_20);
+    gSaveContext.masksGivenOnMoon[2] &= static_cast<u8>(~0x80);
+
+    std::cout << "[ProjectZelda64] granted MM Fierce Deity Mask from shared state; slot " << SLOT_MASK_FIERCE_DEITY
+              << " now contains " << static_cast<int>(gSaveContext.save.saveInfo.inventory.items[SLOT_MASK_FIERCE_DEITY])
+              << '\n';
+}
+
 void ApplySharedRupeesIfPresent() {
-    for (const auto& path : SharedRupeePaths()) {
+    for (const auto& path : SharedBridgePaths(kSharedRupeesFileName)) {
         const auto rupees = ReadSharedRupeesFromPath(path);
         if (!rupees.has_value()) {
             continue;
@@ -182,6 +219,7 @@ void PrepareClockTownSaveState() {
     gSaveContext.save.time = CLOCK_TIME(8, 0);
     gSaveContext.save.day = 1;
     ApplySharedRupeesIfPresent();
+    GrantFierceDeityMaskFromSharedStateIfPresent();
 
     for (size_t i = 0; i < ARRAY_COUNT(gSaveContext.eventInf); i++) {
         gSaveContext.eventInf[i] = 0;
@@ -246,6 +284,7 @@ void BootDirectlyToClockTownIfIntentExists() {
 
     GameInteractor_ExecuteOnSaveInit(gSaveContext.fileNum);
     GameInteractor_ExecuteOnSaveLoad(gSaveContext.fileNum);
+    GrantFierceDeityMaskFromSharedStateIfPresent();
 
     std::cout << "[ProjectZelda64] booting MM directly to South Clock Town / Clock Tower exterior\n";
 }
