@@ -1,8 +1,13 @@
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <optional>
+#include <regex>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "2s2h/GameInteractor/GameInteractor.h"
 #include "2s2h/ShipInit.hpp"
@@ -21,6 +26,7 @@ extern SaveContext gSaveContext;
 namespace {
 
 constexpr const char* kLaunchIntentFileName = "projectzelda64_launch_intent.json";
+constexpr const char* kSharedRupeesFileName = "projectzelda64_shared_rupees.json";
 constexpr int kSouthClockTownSpawn = 0;
 
 bool gProjectZelda64IntentConsumed = false;
@@ -36,6 +42,78 @@ std::string ReadWholeFile(const std::filesystem::path& path) {
 
 bool Contains(const std::string& text, const char* value) {
     return text.find(value) != std::string::npos;
+}
+
+void AddPathIfUnique(std::vector<std::filesystem::path>& paths, std::set<std::string>& seen,
+                     const std::filesystem::path& path) {
+    const auto key = path.lexically_normal().string();
+    if (seen.insert(key).second) {
+        paths.push_back(path.lexically_normal());
+    }
+}
+
+std::vector<std::filesystem::path> SharedRupeePaths() {
+    std::vector<std::filesystem::path> paths;
+    std::set<std::string> seen;
+
+    std::error_code currentPathError;
+    auto base = std::filesystem::current_path(currentPathError);
+    if (currentPathError) {
+        return paths;
+    }
+
+    for (int depth = 0; depth < 8 && !base.empty(); depth++) {
+        AddPathIfUnique(paths, seen, base / kSharedRupeesFileName);
+        AddPathIfUnique(paths, seen, base / "x64" / "Release" / kSharedRupeesFileName);
+        AddPathIfUnique(paths, seen, base / "build" / "x64" / "Release" / kSharedRupeesFileName);
+        AddPathIfUnique(paths, seen, base / "extern" / "Shipwright" / "x64" / "Release" / kSharedRupeesFileName);
+        AddPathIfUnique(paths, seen, base / "extern" / "Shipwright" / "build" / "x64" / "Release" / kSharedRupeesFileName);
+        AddPathIfUnique(paths, seen, base / "extern" / "2ship2harkinian" / "x64" / "Release" / kSharedRupeesFileName);
+        AddPathIfUnique(paths, seen, base / "extern" / "2ship2harkinian" / "build" / "x64" / "Release" / kSharedRupeesFileName);
+
+        const auto parent = base.parent_path();
+        if (parent == base) {
+            break;
+        }
+        base = parent;
+    }
+
+    return paths;
+}
+
+std::optional<int> ExtractSharedRupees(const std::string& json) {
+    const std::regex fieldRegex("\\\"sharedRupees\\\"\\s*:\\s*(-?[0-9]+)");
+    std::smatch match;
+    if (!std::regex_search(json, match, fieldRegex) || match.size() < 2) {
+        return std::nullopt;
+    }
+
+    return std::stoi(match[1].str());
+}
+
+std::optional<int> ReadSharedRupeesFromPath(const std::filesystem::path& path) {
+    std::error_code existsError;
+    if (!std::filesystem::exists(path, existsError) || existsError) {
+        return std::nullopt;
+    }
+
+    return ExtractSharedRupees(ReadWholeFile(path));
+}
+
+void ApplySharedRupeesIfPresent() {
+    for (const auto& path : SharedRupeePaths()) {
+        const auto rupees = ReadSharedRupeesFromPath(path);
+        if (!rupees.has_value()) {
+            continue;
+        }
+
+        const int walletCapacity = CUR_CAPACITY(UPG_WALLET);
+        gSaveContext.save.saveInfo.playerData.rupees = static_cast<s16>(std::clamp(*rupees, 0, walletCapacity));
+        gSaveContext.rupeeAccumulator = 0;
+        std::cout << "[ProjectZelda64] restored shared MM rupees from " << path.string() << ": "
+                  << gSaveContext.save.saveInfo.playerData.rupees << '\n';
+        return;
+    }
 }
 
 bool ConsumeLaunchIntentFromPath(const std::filesystem::path& path) {
@@ -103,6 +181,7 @@ void PrepareClockTownSaveState() {
     gSaveContext.save.linkAge = 0;
     gSaveContext.save.time = CLOCK_TIME(8, 0);
     gSaveContext.save.day = 1;
+    ApplySharedRupeesIfPresent();
 
     for (size_t i = 0; i < ARRAY_COUNT(gSaveContext.eventInf); i++) {
         gSaveContext.eventInf[i] = 0;
