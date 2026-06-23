@@ -14,7 +14,7 @@ void ApplyProjectZelda64TestingDefaults() {
     CVarSetInteger("gInterpolationFPS", 360);
 
     // Audio defaults: 2S2H is naturally louder than OoT in the ProjectZelda64 flow.
-    // Set likely Libultraship/2S2H master/main volume CVars defensively; unused keys are harmless.
+    // These are best-effort until we identify the exact 2S2H volume config key.
     CVarSetInteger("gSettings.Audio.MasterVolume", 80);
     CVarSetInteger("gSettings.Audio.MainVolume", 80);
     CVarSetInteger("gSettings.Audio.Volume", 80);
@@ -34,14 +34,11 @@ void ApplyProjectZelda64TestingDefaults() {
     // Player movement defaults.
     CVarSetInteger("gEnhancements.Player.ClimbSpeed", 5);
 
-    // Speed modifier defaults. Mode 2 is hold-buttons mode; 2 maps to Modifier 2 in this 2S2H input enum.
+    // Speed modifier defaults. Leave the button binding alone for now: in this 2S2H branch,
+    // the guessed button CVars map to C-buttons rather than Modifier 2.
     CVarSetInteger("gCheats.SpeedModifier.Enabled", 1);
     CVarSetInteger("gCheats.SpeedModifier.Mode", 2);
     CVarSetFloat("gCheats.SpeedModifier.Value", 6.0f);
-    CVarSetInteger("gCheats.SpeedModifier.Button", 2);
-    CVarSetInteger("gCheats.SpeedModifier.Btn", 2);
-    CVarSetInteger("gCheats.SpeedModifier.Modifier", 2);
-    CVarSetInteger("gCheats.SpeedModifier.ModifierButton", 2);
 
     // Keep these compatibility keys set for forks/patches that expose jump-safe speed modifier options.
     CVarSetInteger("gCheats.SpeedModifier.DontAffectJumpVelocity", 1);
