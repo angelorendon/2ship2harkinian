@@ -19,8 +19,9 @@ extern "C" {
 namespace {
 
 constexpr const char* kSharedStateFileName = "projectzelda64_shared_state.json";
+constexpr int kMaxApplyFrames = 600;
 
-bool gAppliedSharedItemState = false;
+int gSharedItemApplyFrames = 0;
 
 std::string ReadWholeFile(const std::filesystem::path& path) {
     std::ifstream input(path);
@@ -88,8 +89,18 @@ bool SharedStateContains(const char* value) {
     return false;
 }
 
-void ApplySharedItemState(s16) {
-    if (gAppliedSharedItemState) {
+bool HasFierceDeityMask() {
+    return INV_CONTENT(ITEM_MASK_FIERCE_DEITY) == ITEM_MASK_FIERCE_DEITY ||
+           gSaveContext.save.saveInfo.inventory.items[SLOT_MASK_FIERCE_DEITY] == ITEM_MASK_FIERCE_DEITY;
+}
+
+void GrantFierceDeityMask() {
+    INV_CONTENT(ITEM_MASK_FIERCE_DEITY) = ITEM_MASK_FIERCE_DEITY;
+    gSaveContext.save.saveInfo.inventory.items[SLOT_MASK_FIERCE_DEITY] = ITEM_MASK_FIERCE_DEITY;
+}
+
+void TryApplySharedItemState() {
+    if (HasFierceDeityMask()) {
         return;
     }
 
@@ -97,13 +108,31 @@ void ApplySharedItemState(s16) {
         return;
     }
 
-    INV_CONTENT(ITEM_MASK_FIERCE_DEITY) = ITEM_MASK_FIERCE_DEITY;
-    gAppliedSharedItemState = true;
+    GrantFierceDeityMask();
     std::cout << "[ProjectZelda64] granted MM Fierce Deity Mask from shared state\n";
 }
 
+void ApplySharedItemStateOnSaveLoad(s16) {
+    TryApplySharedItemState();
+    gSharedItemApplyFrames = kMaxApplyFrames;
+}
+
+void ApplySharedItemStateOnFrame() {
+    if (gSharedItemApplyFrames <= 0) {
+        return;
+    }
+
+    gSharedItemApplyFrames--;
+    TryApplySharedItemState();
+
+    if (HasFierceDeityMask()) {
+        gSharedItemApplyFrames = 0;
+    }
+}
+
 void RegisterProjectZelda64SharedItemState() {
-    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSaveLoad>(ApplySharedItemState);
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSaveLoad>(ApplySharedItemStateOnSaveLoad);
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnGameFrameUpdate>(ApplySharedItemStateOnFrame);
 }
 
 } // namespace
