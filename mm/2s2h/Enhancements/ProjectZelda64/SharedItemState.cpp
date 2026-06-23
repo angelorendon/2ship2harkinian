@@ -12,6 +12,8 @@
 extern "C" {
 #include "variables.h"
 #include "macros.h"
+#include "z64item.h"
+#include "z64save.h"
 }
 
 namespace {
