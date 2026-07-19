@@ -7,6 +7,7 @@
 #include <vector>
 
 extern "C" {
+#include "sfx.h"
 #include "variables.h"
 }
 
@@ -81,6 +82,7 @@ void WriteSharedRupees() {
 }
 
 void WriteClockTowerDoorPortalEvent() {
+    Audio_PlaySfx(NA_SE_OC_SECRET_WARP_OUT);
     WriteSharedRupees();
 
     std::ofstream output(kPortalEventFileName, std::ios::trunc);
