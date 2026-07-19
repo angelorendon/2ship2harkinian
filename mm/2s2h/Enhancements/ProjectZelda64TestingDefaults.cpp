@@ -34,12 +34,15 @@ void ApplyProjectZelda64TestingDefaults() {
 
     // Player movement defaults.
     CVarSetInteger("gEnhancements.Player.ClimbSpeed", 5);
+    CVarSetInteger("gEnhancements.Camera.FixTargettingCameraSnap", 1);
 
-    // Speed modifier defaults. Leave the button binding alone for now: in this 2S2H branch,
-    // the guessed button CVars map to C-buttons rather than Modifier 2.
+    // Match Shipwright's hold-to-run Modifier 1 behavior.
     CVarSetInteger("gCheats.SpeedModifier.Enabled", 1);
     CVarSetInteger("gCheats.SpeedModifier.Mode", 2);
+    CVarSetInteger("gCheats.SpeedModifier.Btn", 0x0040);
     CVarSetFloat("gCheats.SpeedModifier.Value", 6.0f);
+    CVarSetInteger("gCheats.SpeedModifier.DoesntChangeJump", 1);
+    CVarSetInteger("gCheats.SpeedModifier.RollMomentumJump", 0);
 
     // Keep these compatibility keys set for forks/patches that expose jump-safe speed modifier options.
     CVarSetInteger("gCheats.SpeedModifier.DontAffectJumpVelocity", 1);
