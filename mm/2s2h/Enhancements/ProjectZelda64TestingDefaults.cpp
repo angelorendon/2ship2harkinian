@@ -11,7 +11,8 @@ constexpr const char* kEnableTestingDefaultsCVar = "gProjectZelda64.EnableTestin
 void ApplyProjectZelda64TestingDefaults() {
     // Graphics defaults for repeated ProjectZelda64 smoke tests.
     CVarSetInteger("gSettings.MSAAValue", 8);
-    CVarSetInteger("gInterpolationFPS", 360);
+    CVarSetInteger("gInterpolationFPS", 300);
+    CVarSetInteger("gSdlWindowedFullscreen", 1);
 
     // Audio defaults: 2S2H is naturally louder than OoT in the ProjectZelda64 flow.
     // These are best-effort until we identify the exact 2S2H volume config key.
@@ -52,6 +53,12 @@ void ApplyProjectZelda64TestingDefaults() {
     CVarSetInteger("gEnhancements.Cutscenes.SkipIntroSequence", 1);
     CVarSetInteger("gEnhancements.Cutscenes.SkipIntro", 1);
     CVarSetInteger("gEnhancements.Cutscenes.SkipStoryCutscenes", 1);
+    CVarSetInteger("gEnhancements.Cutscenes.HideTitleCards", 1);
+    CVarSetInteger("gEnhancements.Cutscenes.SkipEnemyCutscenes", 1);
+    CVarSetInteger("gEnhancements.Cutscenes.SkipGetItemCutscenes", 2);
+    CVarSetInteger("gEnhancements.Cutscenes.SkipMiscInteractions", 1);
+    CVarSetInteger("gEnhancements.Cutscenes.SkipOnePointCutscenes", 1);
+    CVarSetInteger("gEnhancements.Cutscenes.SkipToFileSelect", 1);
     CVarSetInteger("gEnhancements.TimeSavers.SkipCutscene.Intro", 1);
     CVarSetInteger("gEnhancements.TimeSavers.SkipCutscene.Entrances", 1);
     CVarSetInteger("gEnhancements.TimeSavers.SkipOwlInteractions", 1);
