@@ -89,27 +89,27 @@ bool SharedStateContains(const char* value) {
     return false;
 }
 
-bool HasFierceDeityMask() {
-    return INV_CONTENT(ITEM_MASK_FIERCE_DEITY) == ITEM_MASK_FIERCE_DEITY ||
-           gSaveContext.save.saveInfo.inventory.items[SLOT_MASK_FIERCE_DEITY] == ITEM_MASK_FIERCE_DEITY;
+bool HasGoronMask() {
+    return INV_CONTENT(ITEM_MASK_GORON) == ITEM_MASK_GORON ||
+           gSaveContext.save.saveInfo.inventory.items[SLOT_MASK_GORON] == ITEM_MASK_GORON;
 }
 
-void GrantFierceDeityMask() {
-    INV_CONTENT(ITEM_MASK_FIERCE_DEITY) = ITEM_MASK_FIERCE_DEITY;
-    gSaveContext.save.saveInfo.inventory.items[SLOT_MASK_FIERCE_DEITY] = ITEM_MASK_FIERCE_DEITY;
+void GrantGoronMask() {
+    INV_CONTENT(ITEM_MASK_GORON) = ITEM_MASK_GORON;
+    gSaveContext.save.saveInfo.inventory.items[SLOT_MASK_GORON] = ITEM_MASK_GORON;
 }
 
 void TryApplySharedItemState() {
-    if (HasFierceDeityMask()) {
+    if (HasGoronMask()) {
         return;
     }
 
-    if (!SharedStateContains("\"mm.fierce_deity_mask\": true")) {
+    if (!SharedStateContains("\"mm.goron_mask\": true")) {
         return;
     }
 
-    GrantFierceDeityMask();
-    std::cout << "[ProjectZelda64] granted MM Fierce Deity Mask from shared state\n";
+    GrantGoronMask();
+    std::cout << "[ProjectZelda64] granted MM Goron Mask from shared state\n";
 }
 
 void ApplySharedItemStateOnSaveLoad(s16) {
@@ -125,7 +125,7 @@ void ApplySharedItemStateOnFrame() {
     gSharedItemApplyFrames--;
     TryApplySharedItemState();
 
-    if (HasFierceDeityMask()) {
+    if (HasGoronMask()) {
         gSharedItemApplyFrames = 0;
     }
 }
