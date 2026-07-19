@@ -16,6 +16,7 @@ namespace {
 constexpr const char* kPortalEventFileName = "projectzelda64_portal_event.json";
 constexpr const char* kSharedRupeesFileName = "projectzelda64_shared_rupees.json";
 constexpr const char* kMmClockTowerDoorEvent = "mm.enter_clock_tower_door";
+bool gPlayedClockTowerDoorWarpSound = false;
 
 bool IsClockTowerDoorReturnTarget(s16 sceneId, s8 spawnNum) {
     return sceneId == SCENE_INSIDETOWER && spawnNum == 1;
@@ -82,7 +83,6 @@ void WriteSharedRupees() {
 }
 
 void WriteClockTowerDoorPortalEvent() {
-    Audio_PlaySfx(NA_SE_OC_SECRET_WARP_OUT);
     WriteSharedRupees();
 
     std::ofstream output(kPortalEventFileName, std::ios::trunc);
@@ -102,6 +102,20 @@ void WriteClockTowerDoorPortalEvent() {
            << "}\n";
 }
 
+void OnGameStateUpdate() {
+    const bool enteringClockTowerDoor =
+        gPlayState != nullptr && gPlayState->sceneId == SCENE_CLOCKTOWER &&
+        gPlayState->transitionTrigger == TRANS_TRIGGER_START &&
+        gPlayState->nextEntrance == ENTRANCE(CLOCK_TOWER_INTERIOR, 1);
+
+    if (enteringClockTowerDoor && !gPlayedClockTowerDoorWarpSound) {
+        Audio_PlaySfx(NA_SE_OC_SECRET_WARP_OUT);
+        gPlayedClockTowerDoorWarpSound = true;
+    } else if (!enteringClockTowerDoor) {
+        gPlayedClockTowerDoorWarpSound = false;
+    }
+}
+
 void OnSceneInit(s16 sceneId, s8 spawnNum) {
     if (!IsClockTowerDoorReturnTarget(sceneId, spawnNum)) {
         return;
@@ -111,6 +125,7 @@ void OnSceneInit(s16 sceneId, s8 spawnNum) {
 }
 
 void RegisterProjectZelda64PortalBridge() {
+    COND_HOOK(OnGameStateUpdate, true, OnGameStateUpdate);
     COND_ID_HOOK(OnSceneInit, SCENE_INSIDETOWER, true, OnSceneInit);
 }
 
